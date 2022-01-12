@@ -126,6 +126,17 @@ Options:
   --help                          Show this message and exit.
 ```
 
+## Sentinel support
+
+With the same config object as for rq you can connect to redis sentinel. To use redis sentinel, you must specify a dictionary in the configuration file. Using this setting in conjunction with the systemd or docker containers with the automatic restart option allows workers and RQ to have a fault-tolerant connection to the redis.
+
+```
+SENTINEL= {'INSTANCES':[('remote.host1.org', 26379), ('remote.host2.org', 26379), ('remote.host3.org', 26379)],
+           'SOCKET_TIMEOUT': None,
+           'PASSWORD': 'secret',
+           'DB': 2,
+           'MASTER_NAME': 'master'}
+```
 
 ## Credits
 

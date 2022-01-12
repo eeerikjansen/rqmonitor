@@ -1,5 +1,6 @@
 import humanize
 import redis
+from redis.sentinel import Sentinel
 import os
 import signal
 import logging
@@ -46,6 +47,23 @@ JobStatus = ["queued", "finished", "failed", "started", "deferred", "scheduled"]
 def create_redis_connection(redis_url):
     return redis.Redis.from_url(redis_url)
 
+def create_redis_sentinel_connection(sentinel_config, redis_password=None):
+    """
+    :param sentinel_config: sentinel configuration from configuration file
+    :param redis_password: redis password from configuration file
+    :return: Redis object
+
+    """  
+    instances = sentinel_config.get('INSTANCES', [('localhost', 26379)])
+    logging.info(f"sentinel instances: {instances}")
+
+    socket_timeout = sentinel_config.get('SOCKET_TIMEOUT', None)
+    sentinel_password = sentinel_config.get('PASSWORD', None)
+    redis_password = redis_password or sentinel_password
+    db = sentinel_config.get('DB', 0)
+    master_name = sentinel_config.get('MASTER_NAME', 'mymaster')
+    sn = Sentinel(instances, socket_timeout=socket_timeout, password=redis_password, db=db, sentinel_kwargs={'password': sentinel_password})
+    return sn.master_for(master_name)
 
 def send_signal_worker(worker_id):
     worker_instance = Worker.find_by_key(

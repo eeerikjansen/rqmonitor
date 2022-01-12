@@ -19,6 +19,7 @@ from rqmonitor.utils import (
     delete_all_jobs_in_queues_registries,
     requeue_all_jobs_in_failed_registry,
     cancel_all_queued_jobs,
+    create_redis_sentinel_connection
 )
 
 from rqmonitor.defaults import RQ_MONITOR_REFRESH_INTERVAL
@@ -54,7 +55,11 @@ def handle_invalid_usage(error):
 @monitor_blueprint.before_app_first_request
 def setup_redis_connection():
     redis_url = current_app.config.get("RQ_MONITOR_REDIS_URL")
-    if isinstance(redis_url, string_types):
+    sentinel_config = current_app.config.get("SENTINEL")
+    redis_password = current_app.config.get("REDIS_PASSWORD")
+    if sentinel_config:
+        current_app.redis_connection = create_redis_sentinel_connection(sentinel_config, redis_password)
+    elif isinstance(redis_url, string_types):
         # update as tuple
         current_app.config["RQ_MONITOR_REDIS_URL"] = (redis_url,)
         current_app.redis_connection = create_redis_connection((redis_url,)[0])
