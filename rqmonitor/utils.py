@@ -53,6 +53,8 @@ def create_redis_sentinel_connection(sentinel_config, redis_password=None):
     :param redis_password: redis password from configuration file
     :return: Redis object
 
+    As no specific exception is raised for below method
+    we are using general Exception class for now
     """  
     instances = sentinel_config.get('INSTANCES', [('localhost', 26379)])
     logging.info(f"sentinel instances: {instances}")
@@ -61,7 +63,7 @@ def create_redis_sentinel_connection(sentinel_config, redis_password=None):
     sentinel_password = sentinel_config.get('PASSWORD', None)
     redis_password = redis_password or sentinel_password
     db = sentinel_config.get('DB', 0)
-    master_name = sentinel_config.get('MASTER_NAME', 'mymaster')
+    master_name = sentinel_config.get('MASTER_NAME', 'master')
     sn = Sentinel(instances, socket_timeout=socket_timeout, password=redis_password, db=db, sentinel_kwargs={'password': sentinel_password})
     return sn.master_for(master_name)
 
